@@ -1,0 +1,305 @@
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from .models import Article, ContactMessage, SatisfactionPrediction
+from .serializers import (
+    ArticleSerializer,
+    ContactMessageSerializer,
+    SatisfactionPredictionSerializer,
+)
+
+from openai import OpenAI
+from django.conf import settings
+
+
+def get_openai_client():
+    """
+    Retourne un client OpenAI ou une erreur claire si la clé est absente.
+    """
+    api_key = getattr(settings, "OPENAI_API_KEY", None)
+    if not api_key:
+        return None, Response(
+            {"error": "OPENAI_API_KEY manquante dans les settings Django."},
+            status=500,
+        )
+    return OpenAI(api_key=api_key), None
+
+
+# ============================================================
+# ARTICLES (PROTÉGÉ)
+# ============================================================
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def articles_list_create(request):
+    user = request.user
+
+    if request.method == "GET":
+        articles = Article.objects.filter(user=user).order_by("-created_at")
+        serializer = ArticleSerializer(articles, many=True)
+        return Response(serializer.data, status=200)
+
+    if request.method == "POST":
+        serializer = ArticleSerializer(data=request.data)
+
+        if serializer.is_valid():
+            article = serializer.save(user=user)
+            return Response(ArticleSerializer(article).data, status=201)
+
+        return Response(serializer.errors, status=400)
+
+
+@api_view(["GET", "PUT", "DELETE"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def article_detail(request, pk):
+    user = request.user
+
+    try:
+        article = Article.objects.get(pk=pk, user=user)
+    except Article.DoesNotExist:
+        return Response({"error": "Article introuvable."}, status=404)
+
+    if request.method == "GET":
+        return Response(ArticleSerializer(article).data, status=200)
+
+    if request.method == "PUT":
+        serializer = ArticleSerializer(article, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
+
+    if request.method == "DELETE":
+        article.delete()
+        return Response({"status": "deleted"}, status=204)
+
+
+# ============================================================
+# ASSISTANT IA — GENERATE ARTICLE (PUBLIC)
+# ============================================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def assistant_ia(request):
+
+    topic = request.data.get("topic")
+    audience = request.data.get("audience", "grand public")
+    tone = request.data.get("tone", "neutre")
+    length = request.data.get("length", "moyen")
+
+    if not topic:
+        return Response({"error": "Le champ 'topic' est obligatoire."}, status=400)
+
+    prompt = (
+        f"Crée un article complet sur le sujet : {topic}. "
+        f"Public cible : {audience}. "
+        f"Ton : {tone}. "
+        f"Longueur : {length}. "
+        "Génère un titre percutant, un plan structuré et un texte clair et professionnel."
+    )
+
+    client, error_response = get_openai_client()
+    if error_response is not None:
+        return error_response
+
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu es un assistant IA expert en rédaction d’articles. "
+                        "Tu génères un titre, un plan et un texte complet."
+                    )
+                },
+                {"role": "user", "content": prompt},
+            ],
+        )
+
+        answer = completion.choices[0].message.content
+        return Response({"article": answer}, status=200)
+
+    except Exception as e:
+        print("Erreur OpenAI assistant_ia:", e)
+        return Response({"error": "Erreur lors de l’appel à l’IA."}, status=500)
+
+
+# ============================================================
+# ASSISTANT IA — IMPROVE ARTICLE (PUBLIC)
+# ============================================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def improve_article(request):
+
+    content = request.data.get("content")
+    tone = request.data.get("tone", "neutre")
+    audience = request.data.get("audience", "grand public")
+    length = request.data.get("length", "moyen")
+
+    if not content:
+        return Response({"error": "Le champ 'content' est obligatoire."}, status=400)
+
+    prompt = f"""
+Tu es un assistant expert en rédaction.
+Améliore le texte suivant en respectant ces règles :
+
+- Garder le sens original
+- Améliorer la clarté, la fluidité et la structure
+- Adapter le ton : {tone}
+- Adapter le public cible : {audience}
+- Longueur souhaitée : {length}
+- Corriger les fautes
+- Reformuler si nécessaire
+- Ne pas ajouter d’informations inventées
+
+TEXTE À AMÉLIORER :
+\"\"\"{content}\"\"\"
+"""
+
+    client, error_response = get_openai_client()
+    if error_response is not None:
+        return error_response
+
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Tu es un assistant IA expert en amélioration de texte."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                },
+            ],
+        )
+
+        improved = completion.choices[0].message.content
+        return Response({"improved": improved}, status=200)
+
+    except Exception as e:
+        print("Erreur OpenAI improve_article:", e)
+        return Response({"error": "Erreur lors de l’appel à l’IA."}, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_message(request):
+    data = request.data.copy()
+
+    if "consent" not in data or data["consent"] in ["false", False, "0", 0]:
+        return Response({"error": "Le consentement RGPD est obligatoire."}, status=400)
+
+    serializer = ContactMessageSerializer(data=data)
+
+    if serializer.is_valid():
+        msg = serializer.save()
+        return Response(
+            {
+                "id": msg.id,
+                "status": "received",
+                "message": "Message reçu avec succès."
+            },
+            status=201
+        )
+
+    return Response(serializer.errors, status=400)
+
+
+# ============================================================
+# CONTACT LIST (PROTÉGÉ)
+# ============================================================
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def list_contact_messages(request):
+    if not request.user.is_staff:
+        return Response({"error": "Accès refusé."}, status=403)
+
+    messages = ContactMessage.objects.all().order_by("-created_at")
+    serializer = ContactMessageSerializer(messages, many=True)
+    return Response(serializer.data, status=200)
+
+
+
+# ============================================================
+# ANALYZE MESSAGE (PROTÉGÉ)
+# ============================================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def analyze_message(request):
+
+    message = request.data.get("message", "").strip()
+
+    if not message:
+        return Response({"error": "Le champ 'message' est obligatoire."}, status=400)
+
+    # Analyse locale simple
+    msg = message.lower()
+
+    if "merci" in msg or "super" in msg or "parfait" in msg:
+        theme = "positif"
+        confidence = 0.95
+    elif "problème" in msg or "mauvais" in msg or "nul" in msg:
+        theme = "négatif"
+        confidence = 0.85
+    else:
+        theme = "neutre"
+        confidence = 0.60
+
+    return Response({"theme": theme, "confidence": confidence}, status=200)
+
+
+# ============================================================
+# PREDICTIONS ML (PROTÉGÉ)
+# ============================================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def create_prediction(request):
+
+    serializer = SatisfactionPredictionSerializer(data=request.data)
+
+    if serializer.is_valid():
+        pred = serializer.save()
+        return Response(
+            {
+                "id": pred.id,
+                "prediction": pred.prediction,
+                "confidence": pred.confidence,
+                "status": "prediction_saved"
+            },
+            status=201
+        )
+
+    return Response(serializer.errors, status=400)
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def list_predictions_for_contact(request, contact_id):
+    if not request.user.is_staff:
+        return Response({"error": "Accès refusé."}, status=403)
+
+    try:
+        contact = ContactMessage.objects.get(pk=contact_id)
+    except ContactMessage.DoesNotExist:
+        return Response({"error": "Message contact introuvable."}, status=404)
+
+    predictions = contact.predictions.all().order_by("-created_at")
+    serializer = SatisfactionPredictionSerializer(predictions, many=True)
+
+    return Response(serializer.data, status=200)

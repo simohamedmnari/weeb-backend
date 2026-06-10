@@ -1,0 +1,36 @@
+# === ENVIRONNEMENT ===
+.env
+.env.*
+*.env
+
+# === PYTHON ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === DJANGO ===
+db.sqlite3
+media/
+staticfiles/
+
+# === MODELE ML (ne pas ignorer les .joblib)
+# classifier.joblib
+# vectorizer.joblib
+
+# === VENV ===
+venv/
+env/
+ENV/
+.venv/
+
+# === LOGS ===
+*.log
+
+# === IDE ===
+.vscode/
+.idea/
+
+# === SYSTEME ===
+.DS_Store
+Thumbs.db
