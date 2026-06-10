@@ -11,8 +11,8 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    config("RAILWAY_PUBLIC_DOMAIN", default=""),
-    config("ALLOWED_HOSTS", default="").replace(" ", ""),
+    config("RAILWAY_PUBLIC_DOMAIN", default="example.com"),
+    config("ALLOWED_HOSTS", default="example.com").replace(" ", ""),
 ]
 
 # ============================================================
@@ -46,8 +46,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 CORS_ALLOW_ALL_ORIGINS = False
 
+#  CORRECTION ICI : on met une valeur NON VIDE
 CORS_ALLOWED_ORIGINS = [
-    config("FRONTEND_URL", default=""),
+    config("FRONTEND_URL", default="https://example.com"),
 ]
 
 CORS_ALLOW_CREDENTIALS = True
