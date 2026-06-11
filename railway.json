@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "gunicorn config.wsgi:application",
+    "static": {
+      "/static/": "staticfiles"
+    }
+  }
+}
