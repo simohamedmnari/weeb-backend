@@ -9,11 +9,10 @@ https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 
 import os
 from django.core.wsgi import get_wsgi_application
+from whitenoise import WhiteNoise
 
 # ============================================================
 # SETTINGS MODULE (PRODUCTION)
-# ============================================================
-# Railway utilise WSGI → donc on charge les settings de production.
 # ============================================================
 
 os.environ.setdefault(
@@ -21,4 +20,14 @@ os.environ.setdefault(
     "config.settings.production"
 )
 
+# ============================================================
+# APPLICATION WSGI + WHITENOISE
+# ============================================================
+
 application = get_wsgi_application()
+
+# WhiteNoise doit envelopper l'application WSGI
+application = WhiteNoise(
+    application,
+    root=os.path.join(os.path.dirname(os.path.dirname(__file__)), "staticfiles")
+)
