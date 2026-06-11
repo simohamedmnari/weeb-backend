@@ -48,6 +48,7 @@ AUTHENTICATION_BACKENDS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # ← OBLIGATOIRE ICI
 
     # CORS doit être AVANT CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
@@ -101,7 +102,9 @@ USE_TZ = True
 # STATIC FILES
 # ============================================================
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"  # ← CORRIGÉ
+STATICFILES_DIRS = []    # ← OBLIGATOIRE POUR DJANGO 5
+# STATIC_ROOT est défini dans production.py
 
 # ============================================================
 # CORS — PARTIE COMMUNE
