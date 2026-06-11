@@ -11,8 +11,9 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    config("RAILWAY_PUBLIC_DOMAIN", default="example.com"),
-    config("ALLOWED_HOSTS", default="example.com").replace(" ", ""),
+    "weeb-backend-production.up.railway.app",
+    "localhost",
+    "127.0.0.1",
 ]
 
 # ============================================================
@@ -36,6 +37,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# WhiteNoise doit être juste après SecurityMiddleware
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -46,12 +48,22 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-#  CORRECTION ICI : on met une valeur NON VIDE
 CORS_ALLOWED_ORIGINS = [
-    config("FRONTEND_URL", default="https://example.com"),
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://weeb-frontend-production.up.railway.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# ============================================================
+# CSRF — TRUSTED ORIGINS
+# ============================================================
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://weeb-backend-production.up.railway.app",
+    "https://weeb-frontend-production.up.railway.app",
+]
 
 # ============================================================
 # COOKIES — SÉCURISÉS (HTTPS)
