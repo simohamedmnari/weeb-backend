@@ -18,8 +18,8 @@ whitenoise==6.12.0
 openai==2.41.1
 pillow==12.2.0
 
-# Dépendances ML (versions compatibles avec ton modèle)
+# Dépendances ML compatibles Railway (Python 3.10)
 numpy==1.26.4
 pandas==1.5.3
-scikit-learn==1.8.0
+scikit-learn==1.3.2
 joblib==1.3.2
