@@ -15,11 +15,11 @@ from .serializers import (
 from openai import OpenAI
 from django.conf import settings
 
+# Import du vrai modèle ML
+from .predict import predict_message
+
 
 def get_openai_client():
-    """
-    Retourne un client OpenAI ou une erreur claire si la clé est absente.
-    """
     api_key = getattr(settings, "OPENAI_API_KEY", None)
     if not api_key:
         return None, Response(
@@ -191,6 +191,10 @@ TEXTE À AMÉLIORER :
         return Response({"error": "Erreur lors de l’appel à l’IA."}, status=500)
 
 
+# ============================================================
+# CONTACT MESSAGE
+# ============================================================
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def contact_message(request):
@@ -231,9 +235,8 @@ def list_contact_messages(request):
     return Response(serializer.data, status=200)
 
 
-
 # ============================================================
-# ANALYZE MESSAGE (PROTÉGÉ)
+# ANALYZE MESSAGE (NLP SIMPLE)
 # ============================================================
 
 @api_view(["POST"])
@@ -245,7 +248,6 @@ def analyze_message(request):
     if not message:
         return Response({"error": "Le champ 'message' est obligatoire."}, status=400)
 
-    # Analyse locale simple
     msg = message.lower()
 
     if "merci" in msg or "super" in msg or "parfait" in msg:
@@ -262,29 +264,45 @@ def analyze_message(request):
 
 
 # ============================================================
-# PREDICTIONS ML (PROTÉGÉ)
+# PREDICTIONS ML (CORRIGÉ)
 # ============================================================
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def create_prediction(request):
 
-    serializer = SatisfactionPredictionSerializer(data=request.data)
+    contact_id = request.data.get("contact")
 
-    if serializer.is_valid():
-        pred = serializer.save()
-        return Response(
-            {
-                "id": pred.id,
-                "prediction": pred.prediction,
-                "confidence": pred.confidence,
-                "status": "prediction_saved"
-            },
-            status=201
-        )
+    if not contact_id:
+        return Response({"error": "Le champ 'contact' est obligatoire."}, status=400)
 
-    return Response(serializer.errors, status=400)
+    try:
+        contact = ContactMessage.objects.get(pk=contact_id)
+    except ContactMessage.DoesNotExist:
+        return Response({"error": "Contact introuvable."}, status=404)
 
+    # 1. Appel du vrai modèle ML
+    result = predict_message(contact.message)
+
+    prediction = result["prediction"]
+    confidence = max(result["probabilities"].values())
+
+    # 2. Sauvegarde en base
+    pred = SatisfactionPrediction.objects.create(
+        contact=contact,
+        prediction=prediction,
+        confidence=confidence
+    )
+
+    return Response(
+        {
+            "id": pred.id,
+            "prediction": pred.prediction,
+            "confidence": pred.confidence,
+            "status": "prediction_saved"
+        },
+        status=201
+    )
 
 
 @api_view(["GET"])

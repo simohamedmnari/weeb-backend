@@ -53,4 +53,6 @@ class SatisfactionPredictionSerializer(serializers.ModelSerializer):
             "confidence",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        # Correction essentielle :
+        # prediction + confidence doivent être calculés par le backend (modèle ML)
+        read_only_fields = ["id", "created_at", "prediction", "confidence"]
