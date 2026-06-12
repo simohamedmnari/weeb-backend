@@ -2,7 +2,7 @@ import os
 import re
 from joblib import load
 
-# --- 0. Fonction clean_text intégrée (plus besoin de preprocess.py) ---
+# --- 0. Fonction clean_text intégrée ---
 def clean_text(text: str) -> str:
     if not text:
         return ""
@@ -22,17 +22,24 @@ vectorizer = load(os.path.join(MODEL_DIR, "vectorizer.joblib"))
 def predict_message(message: str):
     clean = clean_text(message)
     vect = vectorizer.transform([clean])
+
     prediction = model.predict(vect)[0]
-    proba = model.predict_proba(vect)[0]
+
+    # Gestion propre des probabilités
+    if hasattr(model, "predict_proba"):
+        proba = model.predict_proba(vect)[0]
+        probabilities = {
+            "insatisfaction": float(proba[0]),
+            "satisfaction": float(proba[1])
+        }
+    else:
+        probabilities = None
 
     return {
         "message": message,
         "clean_message": clean,
         "prediction": int(prediction),
-        "probabilities": {
-            "insatisfaction": float(proba[0]),
-            "satisfaction": float(proba[1])
-        }
+        "probabilities": probabilities
     }
 
 # --- 3. Test manuel ---

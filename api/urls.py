@@ -15,9 +15,12 @@ from .views import (
     # ANALYZE MESSAGE (NLP)
     analyze_message,
 
-    # PREDICTIONS ML
+    # PREDICTIONS ML (ancienne logique)
     create_prediction,
     list_predictions_for_contact,
+
+    # PREDICTION ML (vrai modèle predict.py)
+    predict_message_api,
 )
 
 urlpatterns = [
@@ -45,8 +48,13 @@ urlpatterns = [
     path("contact/analyze/", analyze_message, name="analyze-message"),
 
     # ============================================================
-    # PREDICTIONS ML
+    # PREDICTIONS ML (ancienne logique)
     # ============================================================
     path("contact/predictions/", create_prediction, name="create-prediction"),
     path("contact/<int:contact_id>/predictions/", list_predictions_for_contact, name="predictions-for-contact"),
+
+    # ============================================================
+    # PREDICTION ML (vrai modèle predict.py)
+    # ============================================================
+    path("predict/", predict_message_api, name="predict-message"),
 ]

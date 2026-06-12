@@ -321,3 +321,19 @@ def list_predictions_for_contact(request, contact_id):
     serializer = SatisfactionPredictionSerializer(predictions, many=True)
 
     return Response(serializer.data, status=200)
+
+
+# ============================================================
+# PREDICTION ML — VRAI MODELE (predict.py)
+# ============================================================
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def predict_message_api(request):
+    text = request.GET.get("text", "")
+
+    if not text:
+        return Response({"error": "Le champ 'text' est obligatoire."}, status=400)
+
+    result = predict_message(text)
+    return Response(result, status=200)
