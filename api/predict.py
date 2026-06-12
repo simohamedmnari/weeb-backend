@@ -1,10 +1,19 @@
 import os
-import pandas as pd
+import re
 from joblib import load
-from preprocess import clean_text
+
+# --- 0. Fonction clean_text intégrée (plus besoin de preprocess.py) ---
+def clean_text(text: str) -> str:
+    if not text:
+        return ""
+    text = text.lower()
+    text = re.sub(r"[^a-zA-ZÀ-ÿ0-9\s]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
 
 # --- 1. Charger le modèle et le vectorizer ---
-MODEL_DIR = os.path.join("..", "models")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
 
 model = load(os.path.join(MODEL_DIR, "classifier.joblib"))
 vectorizer = load(os.path.join(MODEL_DIR, "vectorizer.joblib"))
@@ -19,7 +28,7 @@ def predict_message(message: str):
     return {
         "message": message,
         "clean_message": clean,
-        "prediction": prediction,
+        "prediction": int(prediction),
         "probabilities": {
             "insatisfaction": float(proba[0]),
             "satisfaction": float(proba[1])
