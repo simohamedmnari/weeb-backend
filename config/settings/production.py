@@ -51,7 +51,10 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://weeb-frontend-production.up.railway.app",
+
+    # NOUVEAUX DOMAINES VERCEL (OBLIGATOIRES)
+    "https://weeb-frontend-v2.vercel.app",
+    "https://weeb-frontend-v2-iomihp3tx-mnpinvests-projects.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -62,7 +65,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://weeb-backend-production.up.railway.app",
-    "https://weeb-frontend-production.up.railway.app",
+
+    # NOUVEAUX DOMAINES VERCEL (OBLIGATOIRES)
+    "https://weeb-frontend-v2.vercel.app",
+    "https://weeb-frontend-v2-iomihp3tx-mnpinvests-projects.vercel.app",
 ]
 
 # ============================================================
