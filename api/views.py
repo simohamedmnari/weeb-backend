@@ -272,20 +272,24 @@ def analyze_message(request):
 def create_prediction(request):
 
     contact_id = request.data.get("contact")
+    text = request.data.get("text", "").strip()   # récupère le texte envoyé
 
     if not contact_id:
         return Response({"error": "Le champ 'contact' est obligatoire."}, status=400)
+
+    if not text:
+        return Response({"error": "Le champ 'text' est obligatoire."}, status=400)
 
     try:
         contact = ContactMessage.objects.get(pk=contact_id)
     except ContactMessage.DoesNotExist:
         return Response({"error": "Contact introuvable."}, status=404)
 
-    # 1. Appel du vrai modèle ML
-    result = predict_message(contact.message)
+    # On utilise le texte envoyé par le frontend
+    result = predict_message(text)
 
     prediction = result["prediction"]
-    confidence = max(result["probabilities"].values())
+    confidence = max(result["probabilities"].values()) if result["probabilities"] else None
 
     # 2. Sauvegarde en base
     pred = SatisfactionPrediction.objects.create(
