@@ -23,3 +23,6 @@ numpy==1.26.4
 pandas==1.5.3
 scikit-learn==1.3.2
 joblib==1.4.2
+
+# Ajout pour le preprocessing identique au notebook
+nltk==3.8.1

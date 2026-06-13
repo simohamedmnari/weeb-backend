@@ -1,31 +1,34 @@
 import os
-import re
 from joblib import load
-
-# --- 0. Fonction clean_text intégrée ---
-def clean_text(text: str) -> str:
-    if not text:
-        return ""
-    text = text.lower()
-    text = re.sub(r"[^a-zA-ZÀ-ÿ0-9\s]", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+from .preprocess import clean_text   # ⬅ IMPORTANT : on utilise le vrai preprocess
 
 # --- 1. Charger le modèle et le vectorizer ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-model = load(os.path.join(MODEL_DIR, "classifier.joblib"))
 vectorizer = load(os.path.join(MODEL_DIR, "vectorizer.joblib"))
+model = load(os.path.join(MODEL_DIR, "classifier.joblib"))
 
 # --- 2. Fonction de prédiction ---
 def predict_message(message: str):
+    if not message:
+        return {
+            "message": "",
+            "clean_message": "",
+            "prediction": None,
+            "probabilities": None
+        }
+
+    # Nettoyage IDENTIQUE au notebook
     clean = clean_text(message)
+
+    # Vectorisation
     vect = vectorizer.transform([clean])
 
+    # Prédiction
     prediction = model.predict(vect)[0]
 
-    # Gestion propre des probabilités
+    # Probabilités si dispo
     if hasattr(model, "predict_proba"):
         proba = model.predict_proba(vect)[0]
         probabilities = {
@@ -41,13 +44,3 @@ def predict_message(message: str):
         "prediction": int(prediction),
         "probabilities": probabilities
     }
-
-# --- 3. Test manuel ---
-if __name__ == "__main__":
-    msg = input("Entrez un message à analyser : ")
-    result = predict_message(msg)
-
-    print("\n=== Résultat ===")
-    print(f"Texte nettoyé : {result['clean_message']}")
-    print(f"Prédiction : {result['prediction']}")
-    print("Probabilités :", result["probabilities"])
