@@ -331,13 +331,18 @@ def list_predictions_for_contact(request, contact_id):
 # PREDICTION ML — VRAI MODELE (predict.py)
 # ============================================================
 
-@api_view(["GET"])
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .predict import predict_message
+
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def predict_message_api(request):
-    text = request.GET.get("text", "")
+    text = request.data.get("message", "").strip()
 
     if not text:
-        return Response({"error": "Le champ 'text' est obligatoire."}, status=400)
+        return Response({"error": "Le champ 'message' est obligatoire."}, status=400)
 
     result = predict_message(text)
     return Response(result, status=200)
