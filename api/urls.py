@@ -24,6 +24,11 @@ from .views import (
 
     # PREDICTION ML (vrai modèle predict.py)
     predict_message_api,
+
+
+
+    # SENTRY DEBUG
+    trigger_error,   # ← AJOUT ICI
 )
 
 urlpatterns = [
@@ -65,4 +70,12 @@ urlpatterns = [
     # PREDICTION ML (vrai modèle predict.py)
     # ============================================================
     path("predict/", predict_message_api, name="predict-message"),
+
+
+
+        # ============================================================
+    # SENTRY DEBUG
+    # ============================================================
+    path("sentry-debug/", trigger_error, name="sentry-debug"),
 ]
+

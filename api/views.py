@@ -395,3 +395,7 @@ def health_check(request):
 
 
 
+
+def trigger_error(request):
+    1 / 0
+
