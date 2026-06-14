@@ -45,7 +45,7 @@ def login_view(request):
         return Response({"error": "Email et mot de passe requis."}, status=400)
 
     from django.contrib.auth import authenticate
-    user = authenticate(request, email=email, password=password)
+    user = authenticate(request, username=email, password=password)
 
     if user is None:
         return Response({"error": "Identifiants invalides."}, status=401)
