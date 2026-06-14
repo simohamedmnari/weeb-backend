@@ -30,6 +30,43 @@ def get_openai_client():
 
 
 # ============================================================
+# AUTH — LOGIN (JWT)
+# ============================================================
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login_view(request):
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    if not email or not password:
+        return Response({"error": "Email et mot de passe requis."}, status=400)
+
+    from django.contrib.auth import authenticate
+    user = authenticate(request, email=email, password=password)
+
+    if user is None:
+        return Response({"error": "Identifiants invalides."}, status=401)
+
+    refresh = RefreshToken.for_user(user)
+
+    return Response(
+        {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "is_staff": user.is_staff,
+            },
+        },
+        status=200
+    )
+
+
+# ============================================================
 # ARTICLES (PROTÉGÉ)
 # ============================================================
 

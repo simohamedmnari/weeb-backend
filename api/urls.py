@@ -1,5 +1,8 @@
 from django.urls import path
 from .views import (
+    # AUTH
+    login_view,
+
     # ARTICLES
     articles_list_create,
     article_detail,
@@ -24,6 +27,11 @@ from .views import (
 )
 
 urlpatterns = [
+    # ============================================================
+    # AUTH
+    # ============================================================
+    path("auth/login/", login_view, name="login"),
+
     # ============================================================
     # ARTICLES
     # ============================================================
