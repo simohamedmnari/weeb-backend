@@ -83,14 +83,20 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 OPENAI_API_KEY = config("OPENAI_API_KEY")
 
 # -------------------------
-# SENTRY – VERSION CORRIGÉE
+# SENTRY – VERSION FINALE
 # -------------------------
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+from decouple import config
 
+# Lecture de la variable Railway
 SENTRY_DSN = config("SENTRY_DSN", default="")
 
-if SENTRY_DSN:  # ← IMPORTANT : n'initialise Sentry que si la variable existe
+# DEBUG : Affiche la valeur dans les logs Railway
+print("DEBUG SENTRY_DSN =", SENTRY_DSN)
+
+# Initialisation Sentry uniquement si la variable existe
+if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
