@@ -14,7 +14,12 @@ ALLOWED_HOSTS = [
     "weeb-backend-production.up.railway.app",
     "localhost",
     "127.0.0.1",
+
+    # FRONTEND VERCEL 
+    "weeb-frontend-v2.vercel.app",
+    "weeb-frontend-v2-iomihp3tx-mnpinvests-projects.vercel.app",
 ]
+
 
 # ============================================================
 # BASE DE DONNÉES — POSTGRESQL (Railway)
@@ -49,12 +54,17 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 
-    # NOUVEAUX DOMAINES VERCEL (OBLIGATOIRES)
+    # FRONTEND VERCEL
     "https://weeb-frontend-v2.vercel.app",
     "https://weeb-frontend-v2-iomihp3tx-mnpinvests-projects.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# IMPORTANT : autoriser les headers nécessaires
+CORS_ALLOW_HEADERS = ["*"]
+CORS_EXPOSE_HEADERS = ["*"]
+
 
 # ============================================================
 # CSRF — TRUSTED ORIGINS
