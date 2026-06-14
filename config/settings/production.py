@@ -83,3 +83,15 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 OPENAI_API_KEY = config("OPENAI_API_KEY")
 
 
+
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+import os
+
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+    send_default_pii=True
+)
