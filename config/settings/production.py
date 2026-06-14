@@ -60,7 +60,6 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# IMPORTANT : Django CORS Headers n'accepte PAS "*" en production
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -103,8 +102,8 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SAMESITE = "None"
 
-SIMPLE_JWT["AUTH_COOKIE_SECURE"] = True
-SIMPLE_JWT["AUTH_COOKIE_SAMESITE"] = "None"
+# ⚠️ IMPORTANT : NE PAS TOUCHER À SIMPLE_JWT ICI
+# (il est défini dans base.py)
 
 # ============================================================
 # HTTPS — REDIRECTION & HSTS
