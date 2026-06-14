@@ -20,7 +20,6 @@ ALLOWED_HOSTS = [
     "weeb-frontend-v2-iomihp3tx-mnpinvests-projects.vercel.app",
 ]
 
-
 # ============================================================
 # BASE DE DONNÉES — POSTGRESQL (Railway)
 # ============================================================
@@ -61,10 +60,26 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# IMPORTANT : autoriser les headers nécessaires
-CORS_ALLOW_HEADERS = ["*"]
-CORS_EXPOSE_HEADERS = ["*"]
+# IMPORTANT : Django CORS Headers n'accepte PAS "*" en production
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "origin",
+    "user-agent",
+    "dnt",
+    "connection",
+    "pragma",
+    "cache-control",
+    "x-csrftoken",
+]
 
+CORS_EXPOSE_HEADERS = [
+    "Content-Type",
+    "X-CSRFToken",
+    "Set-Cookie",
+]
 
 # ============================================================
 # CSRF — TRUSTED ORIGINS
@@ -73,7 +88,7 @@ CORS_EXPOSE_HEADERS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     "https://weeb-backend-production.up.railway.app",
 
-    # NOUVEAUX DOMAINES VERCEL (OBLIGATOIRES)
+    # FRONTEND VERCEL
     "https://weeb-frontend-v2.vercel.app",
     "https://weeb-frontend-v2-iomihp3tx-mnpinvests-projects.vercel.app",
 ]
