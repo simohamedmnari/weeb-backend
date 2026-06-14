@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from api.views import health_check
 
 urlpatterns = [
     # ============================================================
@@ -15,5 +16,6 @@ urlpatterns = [
     # ============================================================
     # API UNIFIÉE (articles + contact + prédictions ML)
     # ============================================================
+    path("health/", health_check),
     path("api/", include("api.urls")),
 ]

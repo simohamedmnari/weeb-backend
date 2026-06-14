@@ -383,3 +383,15 @@ def predict_message_api(request):
 
     result = predict_message(text)
     return Response(result, status=200)
+
+# ============================================================
+# HEALTH CHECK (PUBLIC)
+# ============================================================
+
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
+
+
