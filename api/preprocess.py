@@ -2,6 +2,9 @@ import re
 import nltk
 from nltk.corpus import stopwords
 
+# Télécharger automatiquement les stopwords si absentes (Railway)
+nltk.download("stopwords", quiet=True)
+
 # Charger les stopwords anglais
 stop_words = set(stopwords.words("english"))
 
